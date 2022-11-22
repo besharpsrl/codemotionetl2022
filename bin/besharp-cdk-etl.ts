@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import {environment} from "../environment";
-import { PipelineStack } from '../lib/pipeline-stack';
+import {environment} from "../infrastructure/environment";
+import { PipelineStack } from '../infrastructure/lib/pipeline-stack';
 
 const app = new cdk.App();
 new PipelineStack(app, `BesharpCdkPipelineStack`, {
