@@ -52,7 +52,7 @@ export class InfrastructureStack extends Stack {
         ************************* */
         // this.lambdaLayers = new LambdaLayers(this, 'LambdaLayersStack');
         this.storageStack = new StorageStack(this, 'StorageStack', {
-            id: "6"
+            // id: "6"
         });
     }
 }
