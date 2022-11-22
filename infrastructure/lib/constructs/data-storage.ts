@@ -44,9 +44,6 @@ export class DataStorage extends Construct {
 
         this._secret = new Secret(this, 'Secret', {
             secretName: `${environment.name}-${environment.project}-secret`,
-            secretObjectValue: {
-                "password": cdk.SecretValue.unsafePlainText("")
-            },
             generateSecretString: {
                 secretStringTemplate: JSON.stringify({
                     username: 'admin',
