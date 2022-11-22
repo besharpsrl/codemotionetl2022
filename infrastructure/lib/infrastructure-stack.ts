@@ -5,6 +5,7 @@ import {environment} from "../environment";
 import {DataStorage} from "./constructs/data-storage";
 import {KinesisInput} from "./constructs/kinesis-input";
 import {Vpc, IVpc, ISubnet, Subnet} from "aws-cdk-lib/aws-ec2";
+import {LambdaLayersNestedStack} from "./nested/lambdalayers-stack";
 
 export class InfrastructureStage extends Stage {
     constructor(scope: Construct, id: string, props: StageProps) {
@@ -25,7 +26,7 @@ export class InfrastructureStack extends Stack {
     public vpc: IVpc;
     public publicSubnets: ISubnet[];
 
-    // private readonly lambdaLayers: LambdaLayers;
+    private readonly lambdaLayersNestedStack: LambdaLayersNestedStack;
     private readonly dataStorage: DataStorage;
     private readonly kinesisInput: KinesisInput;
 
@@ -46,7 +47,7 @@ export class InfrastructureStack extends Stack {
         /* **********************
             Stacks
         ************************* */
-        // this.lambdaLayers = new LambdaLayers(this, 'LambdaLayersStack');
+        this.lambdaLayersNestedStack = new LambdaLayersNestedStack(this, "LambdaLayersNestedStack", {})
 
         // TODO: create RS
         this.dataStorage = new DataStorage(this, 'DataStorage', {
