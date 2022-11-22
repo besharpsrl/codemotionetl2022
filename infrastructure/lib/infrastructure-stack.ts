@@ -78,6 +78,7 @@ export class InfrastructureStack extends Stack {
             timeout: Duration.minutes(3),
             layers: this.lambdaLayersNestedStack.layers,
             role: synchRedshiftFunctionRole,
+            environment: {SECRET_ARN: this.dataStorage.clusterSecret.secretArn}
         })
         this.dataStorage.transformedBucket.addObjectCreatedNotification(new aws_s3_notifications.LambdaDestination(synchRedshiftFunction));
 

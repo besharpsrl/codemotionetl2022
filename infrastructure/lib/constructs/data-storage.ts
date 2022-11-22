@@ -4,7 +4,7 @@ import {Bucket, BucketEncryption, BucketAccessControl, BlockPublicAccess} from '
 import {environment} from "../../environment";
 import {Cluster} from "@aws-cdk/aws-redshift-alpha"
 import {IVpc} from "aws-cdk-lib/aws-ec2";
-import {Secret} from "aws-cdk-lib/aws-secretsmanager";
+import {ISecret, Secret} from "aws-cdk-lib/aws-secretsmanager";
 
 export interface DataStorageProps {
     vpc: IVpc;
@@ -21,7 +21,7 @@ export class DataStorage extends Construct {
     private readonly _inputBucket: Bucket;
     private readonly _transformedBucket: Bucket;
     private readonly _cluster: Cluster;
-    private _secret: Secret;
+    private readonly _secret: Secret;
 
     constructor(scope: Construct, id: string, props: DataStorageProps) {
         super(scope, id);
@@ -74,6 +74,10 @@ export class DataStorage extends Construct {
 
     public get transformedBucket(): Bucket {
         return this._transformedBucket;
+    }
+
+    public get clusterSecret(): ISecret {
+        return this._secret;
     }
 
 }
