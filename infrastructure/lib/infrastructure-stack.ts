@@ -58,7 +58,9 @@ export class InfrastructureStack extends Stack {
         this.lambdaLayersNestedStack = new LambdaLayersNestedStack(this, "LambdaLayersNestedStack", {})
 
         // TODO: create RS
-        this.dataStorage = new DataStorage(this, 'DataStorage', {});
+        this.dataStorage = new DataStorage(this, 'DataStorage', {
+            vpc: this.vpc
+        });
         const synchRedshiftFunctionRole = new Role(this, `SynchRedshiftFunctionRole`, {
             roleName: `${environment.name}-${environment.project}-synch-redshift-role`,
             description: '',
