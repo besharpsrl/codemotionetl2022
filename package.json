@@ -14,7 +14,11 @@
     "deploy-infra:dev": "ENVIRONMENT=dev cdk deploy BesharpCdkInfrastructureStack",
     "synth:prod": "npm run build && ENVIRONMENT=prod cdk synth",
     "deploy:prod": "ENVIRONMENT=prod cdk deploy BesharpCdkPipelineStack",
-    "deploy-infra:prod": "ENVIRONMENT=prod cdk deploy BesharpCdkInfrastructureStack"
+    "deploy-infra:prod": "ENVIRONMENT=prod cdk deploy BesharpCdkInfrastructureStack",
+    "create-requirements": "poetry export -f requirements.txt --output ./requirements.txt --with-credentials",
+    "create-dev-requirements": "poetry export --dev -f requirements.txt --output ./requirements.txt --with-credentials",
+    "zip-requirements": "npm run create-requirements && rm -rf ./dist/dependencies ./dist/dependencies.zip && mkdir -p ./dist/dependencies/python && pip install --no-cache-dir -r requirements.txt --target ./dist/dependencies/python && cd ./dist/dependencies && zip -r ../dependencies.zip ./python",
+    "zip-shared": "rm -rf ./dist/shared ./dist/shared.zip && mkdir -p ./dist/shared/python && cp -r ./src/shared ./dist/shared/python && cd ./dist/shared && zip -r ../shared.zip ./python"
   },
   "devDependencies": {
     "@types/jest": "^27.5.2",
