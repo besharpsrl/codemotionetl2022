@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "besharp-cdk-etl"
+version = "0.1.0"
+description = ""
+authors = ["Mattia Costamagna <mattia.costamagna@besharp.it>"]
+readme = "README.md"
+packages = [{include = "besharp_cdk_etl"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+boto3 = "^1.26.14"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
