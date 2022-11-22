@@ -15,13 +15,13 @@ export interface DataStorageProps {
 }
 
 export class DataStorage extends Construct {
-  private inputBucket: Bucket;
-  private transformedBucket: Bucket;
+  private readonly _inputBucket: Bucket;
+  private readonly _transformedBucket: Bucket;
 
   constructor(scope: Construct, id: string, props: DataStorageProps) {
     super(scope, id);
 
-    this.inputBucket = new Bucket(this, 'InputBucket', {
+    this._inputBucket = new Bucket(this, 'InputBucket', {
       bucketName: `${environment.name}-${environment.project}-input`,
       encryption: BucketEncryption.S3_MANAGED,
       versioned: true,
@@ -29,7 +29,7 @@ export class DataStorage extends Construct {
       blockPublicAccess: new BlockPublicAccess(BlockPublicAccess.BLOCK_ALL)
     });
 
-    this.transformedBucket = new Bucket(this, 'TransformedBucket', {
+    this._transformedBucket = new Bucket(this, 'TransformedBucket', {
       bucketName: `${environment.name}-${environment.project}-processed`,
       encryption: BucketEncryption.S3_MANAGED,
       versioned: true,
@@ -38,7 +38,12 @@ export class DataStorage extends Construct {
     });
   }
 
-  public get rawDataBucket() : Bucket {
-    return this.inputBucket;
+  public get inputBucket() : Bucket {
+    return this._inputBucket;
   }
+
+  public get transformedBucket() : Bucket {
+    return this._transformedBucket;
+  }
+
 }

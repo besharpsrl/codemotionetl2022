@@ -19,7 +19,7 @@ export class LambdaLayersNestedStack extends NestedStack {
 
     private createLambdaLayers() {
         this._layers = [];
-        const rootPath = path.join(__dirname, "..", "..");
+        const rootPath = path.join(__dirname, "..", "..", "..");
         this.createDependenciesLayer(
             "PythonLayer",
             path.join(rootPath,'dist', "dependencies.zip"),
