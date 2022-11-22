@@ -2,6 +2,7 @@ import {aws_codebuild, aws_codecommit, pipelines, Stack, StackProps} from 'aws-c
 import {Construct} from 'constructs';
 import {environment} from "../environment";
 import {InfrastructureStage} from "./infrastructure-stack";
+import {PolicyStatement} from "aws-cdk-lib/aws-iam";
 
 
 export class PipelineStack extends Stack {
@@ -14,6 +15,15 @@ export class PipelineStack extends Stack {
             publishAssetsInParallel: false,
             synth: new pipelines.CodeBuildStep('Synth', {
                 projectName: `${environment.name}-${environment.project}-synth`,
+                rolePolicyStatements: [
+                    PolicyStatement.fromJson({
+                        Action: [
+                            'ec2:*'
+                        ],
+                        Resource: '*',
+                        Effect: 'Allow'
+                    })
+                ],
                 input: pipelines.CodePipelineSource.codeCommit(aws_codecommit.Repository.fromRepositoryArn(this, 'Repository', environment.repository.arn), environment.repository.branch),
                 partialBuildSpec: aws_codebuild.BuildSpec.fromObject({
                     phases: {
