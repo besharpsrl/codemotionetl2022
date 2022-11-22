@@ -44,9 +44,9 @@ export class InfrastructureStack extends Stack {
         });
 
         this.subnets = {
-            public: environment.subnets.public.map((s, idx)=> Subnet.fromSubnetId(this, `SubnetPublic${idx}`,s)),
-            natted: environment.subnets.natted.map((s, idx)=> Subnet.fromSubnetId(this, `SubnetNatted${idx}`,s)),
-            private: environment.subnets.private.map((s, idx)=> Subnet.fromSubnetId(this, `SubnetPrivate${idx}`,s)),
+            public: environment.subnets.public.map((s, idx) => Subnet.fromSubnetId(this, `SubnetPublic${idx}`, s)),
+            natted: environment.subnets.natted.map((s, idx) => Subnet.fromSubnetId(this, `SubnetNatted${idx}`, s)),
+            private: environment.subnets.private.map((s, idx) => Subnet.fromSubnetId(this, `SubnetPrivate${idx}`, s)),
         }
         // this.subnets = [
         //     Subnet.fromSubnetId(this, 'SubnetPublicA', environment.subnetPublic)
@@ -70,7 +70,7 @@ export class InfrastructureStack extends Stack {
         const synchRedshiftFunction = new aws_lambda.Function(this, "SynchRedshiftFunction", {
             functionName: `${environment.name}-${environment.project}-synch-redshift`,
             handler: 'handler.handler',
-            code: aws_lambda.Code.fromAsset(path.join('..', '..', 'src', 'lambdas', 'synch-redshift')),
+            code: aws_lambda.Code.fromAsset(path.join(__dirname, '..', '..', 'src', 'lambdas', 'synch-redshift')),
             runtime: aws_lambda.Runtime.PYTHON_3_9,
             memorySize: 512,
             timeout: Duration.minutes(3),
