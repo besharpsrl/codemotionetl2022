@@ -2,6 +2,7 @@ import {aws_lambda, aws_s3_notifications, Duration, Stack, StackProps, Stage, St
 import {Construct} from "constructs";
 import {environment} from "../environment";
 import {DataStorage} from "./constructs/data-storage";
+import {DataProcessing} from "./constructs/data-processing";
 import {KinesisInput} from "./constructs/kinesis-input";
 import {Vpc, IVpc, ISubnet, Subnet} from "aws-cdk-lib/aws-ec2";
 import {LambdaLayersNestedStack} from "./nested/lambdalayers-stack";
@@ -32,6 +33,7 @@ export class InfrastructureStack extends Stack {
     private readonly lambdaLayersNestedStack: LambdaLayersNestedStack;
     private readonly dataStorage: DataStorage;
     private readonly kinesisInput: KinesisInput;
+    private readonly dataProcessing: DataProcessing;
 
     constructor(scope: Construct, id: string, props: StackProps) {
         super(scope, id, props);
@@ -60,6 +62,10 @@ export class InfrastructureStack extends Stack {
         // TODO: create RS
         this.dataStorage = new DataStorage(this, 'DataStorage', {
             vpc: this.vpc
+        });
+        this.dataProcessing = new DataProcessing(this, 'DataProcessing', {
+            inputBucket: this.dataStorage.inputBucket,
+            outputBucket: this.dataStorage.transformedBucket
         });
         const synchRedshiftFunctionRole = new Role(this, `SynchRedshiftFunctionRole`, {
             roleName: `${environment.name}-${environment.project}-synch-redshift-role`,
