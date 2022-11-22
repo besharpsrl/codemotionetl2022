@@ -9,8 +9,11 @@ let env: {
         branch: string;
     };
     vpcId: string;
-    subnetPublic: string;
-    subnetPrivate: string;
+    subnets: {
+        public: string[];
+        private: string[];
+        natted: string[];
+    };
 };
 
 try {

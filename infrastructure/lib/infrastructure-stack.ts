@@ -9,9 +9,11 @@ import * as path from "path";
 import {ManagedPolicy, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 
 export class InfrastructureStage extends Stage {
+    private infrastructureStack: InfrastructureStack;
+
     constructor(scope: Construct, id: string, props: StageProps) {
         super(scope, id, props);
-        const infrastructureStack = new InfrastructureStack(this, "BesharpCdkInfrastructureStack", {
+        this.infrastructureStack = new InfrastructureStack(this, "BesharpCdkInfrastructureStack", {
             stackName: `${environment.name}-${environment.project}-infrastructure`,
             description: `Stack that contains the main infrastructure for the ${environment.name}-${environment.project} environment`,
             tags: {
@@ -25,7 +27,7 @@ export class InfrastructureStage extends Stage {
 
 export class InfrastructureStack extends Stack {
     public vpc: IVpc;
-    public publicSubnets: ISubnet[];
+    public subnets: { public: ISubnet[]; natted: ISubnet[]; private: ISubnet[]; }
 
     private readonly lambdaLayersNestedStack: LambdaLayersNestedStack;
     private readonly dataStorage: DataStorage;
@@ -41,9 +43,14 @@ export class InfrastructureStack extends Stack {
             vpcId: environment.vpcId,
         });
 
-        this.publicSubnets = [
-            Subnet.fromSubnetId(this, 'SubnetPublicA', environment.subnetPublic)
-        ];
+        this.subnets = {
+            public: environment.subnets.public.map((s, idx)=> Subnet.fromSubnetId(this, `SubnetPublic${idx}`,s)),
+            natted: environment.subnets.natted.map((s, idx)=> Subnet.fromSubnetId(this, `SubnetNatted${idx}`,s)),
+            private: environment.subnets.private.map((s, idx)=> Subnet.fromSubnetId(this, `SubnetPrivate${idx}`,s)),
+        }
+        // this.subnets = [
+        //     Subnet.fromSubnetId(this, 'SubnetPublicA', environment.subnetPublic)
+        // ];
 
         /* **********************
             Stacks
@@ -63,7 +70,7 @@ export class InfrastructureStack extends Stack {
         const synchRedshiftFunction = new aws_lambda.Function(this, "SynchRedshiftFunction", {
             functionName: `${environment.name}-${environment.project}-synch-redshift`,
             handler: 'handler.handler',
-            code: aws_lambda.Code.fromAsset(path.join('..', '..', 'src', 'lambda', 'synch-redshift')),
+            code: aws_lambda.Code.fromAsset(path.join('..', '..', 'src', 'lambdas', 'synch-redshift')),
             runtime: aws_lambda.Runtime.PYTHON_3_9,
             memorySize: 512,
             timeout: Duration.minutes(3),
