@@ -168,7 +168,7 @@ export class KinesisInput extends Construct {
     }
   })
   validatorLambda.grantInvoke(deliveryStreamRole) // needed for transformation
-
+  props.inputBucket.grantPut(deliveryStreamRole)
 
   const deliveryDestination = new S3CustomDestination({
     bucketArn: props.inputBucket.bucketArn,
