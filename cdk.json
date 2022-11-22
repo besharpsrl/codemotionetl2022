@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts infrastructure/bin/besharp-cdk-etl.ts",
+  "app": "npx ts-node --prefer-ts-exts bin/besharp-cdk-etl.ts",
   "watch": {
     "include": [
       "**"

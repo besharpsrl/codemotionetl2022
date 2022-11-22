@@ -2,7 +2,7 @@
   "name": "besharp-cdk-etl",
   "version": "0.1.0",
   "bin": {
-    "besharp-cdk-etl": "infrastructure/bin/besharp-cdk-etl.js"
+    "besharp-cdk-etl": "bin/besharp-cdk-etl.js"
   },
   "scripts": {
     "build": "tsc",
