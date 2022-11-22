@@ -44,7 +44,19 @@ export class DataStorage extends Construct {
 
         this._secret = new Secret(this, 'Secret', {
             secretName: `${environment.name}-${environment.project}-secret`,
-        })
+            secretObjectValue: {
+                "password": cdk.SecretValue.unsafePlainText("")
+            },
+            generateSecretString: {
+                secretStringTemplate: JSON.stringify({
+                    username: 'admin',
+                    host: '',
+                    dbname: `${environment.name}-${environment.project}`,
+                }),
+                generateStringKey: 'password',
+                excludeCharacters: '/@" '
+            },
+        });
 
         this._cluster = new Cluster(this, 'Cluster', {
             masterUser: {
@@ -55,6 +67,7 @@ export class DataStorage extends Construct {
             clusterName: `${environment.name}-${environment.project}-cluster`,
             defaultDatabaseName: `${environment.name}-${environment.project}`,
         });
+
 
     }
 
