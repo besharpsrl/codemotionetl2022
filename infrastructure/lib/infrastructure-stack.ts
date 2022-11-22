@@ -1,13 +1,11 @@
-import {aws_lambda, Duration, Stack, StackProps, Stage, StageProps, Tags} from "aws-cdk-lib";
+import {aws_lambda, aws_s3_notifications, Duration, Stack, StackProps, Stage, StageProps} from "aws-cdk-lib";
 import {Construct} from "constructs";
 import {environment} from "../environment";
 import {DataStorage} from "./constructs/data-storage";
 import {KinesisInput} from "./constructs/kinesis-input";
 import {Vpc, IVpc, ISubnet, Subnet} from "aws-cdk-lib/aws-ec2";
 import {LambdaLayersNestedStack} from "./nested/lambdalayers-stack";
-import {LambdaDestination} from "aws-cdk-lib/aws-s3-notifications/lib/lambda";
 import * as path from "path";
-import {AssetCode, Runtime} from "aws-cdk-lib/aws-lambda";
 import {ManagedPolicy, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 
 export class InfrastructureStage extends Stage {
@@ -43,7 +41,7 @@ export class InfrastructureStack extends Stack {
             vpcId: environment.vpcId,
         });
 
-        this.publicSubnets= [
+        this.publicSubnets = [
             Subnet.fromSubnetId(this, 'SubnetPublicA', environment.subnetPublic)
         ];
 
@@ -65,14 +63,14 @@ export class InfrastructureStack extends Stack {
         const synchRedshiftFunction = new aws_lambda.Function(this, "SynchRedshiftFunction", {
             functionName: `${environment.name}-${environment.project}-synch-redshift`,
             handler: 'handler.handler',
-            code: aws_lambda.Code.fromAsset(path.join('..','..','src','lambda','synch-redshift')),
+            code: aws_lambda.Code.fromAsset(path.join('..', '..', 'src', 'lambda', 'synch-redshift')),
             runtime: aws_lambda.Runtime.PYTHON_3_9,
             memorySize: 512,
             timeout: Duration.minutes(3),
             layers: this.lambdaLayersNestedStack.layers,
             role: synchRedshiftFunctionRole,
         })
-        this.dataStorage.transformedBucket.addObjectCreatedNotification(new LambdaDestination(synchRedshiftFunction))
+        this.dataStorage.transformedBucket.addObjectCreatedNotification(new aws_s3_notifications.LambdaDestination(synchRedshiftFunction));
 
         this.kinesisInput = new KinesisInput(this, 'KinesisInput', {
             inputBucket: this.dataStorage.inputBucket
@@ -80,7 +78,6 @@ export class InfrastructureStack extends Stack {
 
         // Crawler su transformed bucket
 
-        
 
     }
 }
