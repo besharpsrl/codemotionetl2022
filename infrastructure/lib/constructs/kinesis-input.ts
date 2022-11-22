@@ -77,7 +77,6 @@ export class KinesisInput extends Construct {
       tableName: `${environment.name}-${environment.project}-raw-data`,
       description: `${environment.name}-${environment.project}-raw-data`,
       columns: [
-          { name: 'id', type: Schema.STRING, },
           { name: 'stock_name', type: Schema.STRING, },
           { name: 'price', type: Schema.DOUBLE, },
           { name: 'ts', type: Schema.BIG_INT, },
