@@ -81,40 +81,40 @@ export class DataStorage extends Construct {
             },
         });
 
-        this._clusterSg = new SecurityGroup(this, 'ClusterSG', {
-            securityGroupName: `${environment.name}-${environment.project}-rs-sg`,
-            description: `${environment.name}-${environment.project}-rs-sg`,
-            vpc: props.vpc,
-            allowAllOutbound: true
-        });
+        // this._clusterSg = new SecurityGroup(this, 'ClusterSG', {
+        //     securityGroupName: `${environment.name}-${environment.project}-rs-sg`,
+        //     description: `${environment.name}-${environment.project}-rs-sg`,
+        //     vpc: props.vpc,
+        //     allowAllOutbound: true
+        // });
 
-        const subnetGroup = new ClusterSubnetGroup(this, 'SubnetGroup', {
-            description: `${environment.name}-${environment.project}-cluster-subnet-group`,
-            vpc: props.vpc,
-            vpcSubnets: {subnets: props.subnets.private}
-        })
+        // const subnetGroup = new ClusterSubnetGroup(this, 'SubnetGroup', {
+        //     description: `${environment.name}-${environment.project}-cluster-subnet-group`,
+        //     vpc: props.vpc,
+        //     vpcSubnets: {subnets: props.subnets.private}
+        // })
 
-        const parameterGroup = new ClusterParameterGroup(this, 'ParameterGroup', {
-            description: `${environment.name}-${environment.project}-cluster-param-group`,
-            parameters: {}
-        })
+        // const parameterGroup = new ClusterParameterGroup(this, 'ParameterGroup', {
+        //     description: `${environment.name}-${environment.project}-cluster-param-group`,
+        //     parameters: {}
+        // })
 
-        this._cluster = new Cluster(this, 'Cluster', {
-            clusterName: `${environment.name}-${environment.project}-cluster`,
-            defaultDatabaseName: this._defaultDB,
-            clusterType: ClusterType.SINGLE_NODE,
-            nodeType: NodeType.DS2_XLARGE,
-            numberOfNodes: 1,
-            masterUser: {
-                masterUsername: this._masterUsername,
-                masterPassword: cdk.SecretValue.secretsManager(this._secret.secretArn, {jsonField: 'password'}),
-            },
-            roles: [rsRole],
-            parameterGroup: parameterGroup,
-            subnetGroup: subnetGroup,
-            securityGroups: [this._clusterSg],
-            vpc: props.vpc,
-        });
+        // this._cluster = new Cluster(this, 'Cluster', {
+        //     clusterName: `${environment.name}-${environment.project}-cluster`,
+        //     defaultDatabaseName: this._defaultDB,
+        //     clusterType: ClusterType.SINGLE_NODE,
+        //     nodeType: NodeType.DS2_XLARGE,
+        //     numberOfNodes: 1,
+        //     masterUser: {
+        //         masterUsername: this._masterUsername,
+        //         masterPassword: cdk.SecretValue.secretsManager(this._secret.secretArn, {jsonField: 'password'}),
+        //     },
+        //     roles: [rsRole],
+        //     parameterGroup: parameterGroup,
+        //     subnetGroup: subnetGroup,
+        //     securityGroups: [this._clusterSg],
+        //     vpc: props.vpc,
+        // });
 
 
     }
@@ -127,20 +127,20 @@ export class DataStorage extends Construct {
         return this._transformedBucket;
     }
 
-    public get cluster(): Cluster {
-        return this._cluster;
-    }
+    // public get cluster(): Cluster {
+    //     return this._cluster;
+    // }
 
-    public get clusterDB(): string {
-        return this._defaultDB;
-    }
+    // public get clusterDB(): string {
+    //     return this._defaultDB;
+    // }
 
-    public get clusterSecret(): ISecret {
-        return this._secret;
-    }
+    // public get clusterSecret(): ISecret {
+    //     return this._secret;
+    // }
 
-    public get clusterSG(): SecurityGroup {
-        return this._clusterSg;
-    }
+    // public get clusterSG(): SecurityGroup {
+    //     return this._clusterSg;
+    // }
 
 }
