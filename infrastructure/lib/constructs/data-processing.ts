@@ -87,21 +87,21 @@ export class DataProcessing extends Construct {
         // TODO: policies
         jobRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
 
-        // const jobConnection = new Connection(this, 'JobConnection', {
-        //     type: ConnectionType.JDBC,
-        //     connectionName: `${environment.name}-${environment.project}-redshift`,
-        //     description: `${environment.name}-${environment.project}-redshift`,
-        //     // matchCriteria: 44,
-        //     properties: {
-        //         "JDBC_ENFORCE_SSL": "false",
-        //         // "JDBC_CONNECTION_URL": "jdbc:redshift://dev-codemotion-cdk-etl-cluster.cv4q3eaj360w.eu-west-1.redshift.amazonaws.com:5439/dev-codemotion-cdk-etl",
-        //         "JDBC_CONNECTION_URL": `jdbc:redshift://${props.redshiftCluster.clusterEndpoint.socketAddress}/${props.redshiftDatabase}`, // "jdbc:redshift://dev-codemotion-cdk-etl-cluster.cv4q3eaj360w.eu-west-1.redshift.amazonaws.com:5439/dev-codemotion-cdk-etl",
-        //         "SECRET_ID": props.redshiftSecret.secretName, // "dev-codemotion-cdk-etl-secret",
-        //         "KAFKA_SSL_ENABLED": "false"
-        //     },
-        //     securityGroups: [props.redshiftSG],
-        //     subnet: props.subnets.private[0],
-        // })
+        const rsJobConnection = new Connection(this, 'RedshiftJobConnection', {
+            type: ConnectionType.JDBC,
+            connectionName: `${environment.name}-${environment.project}-redshift`,
+            description: `${environment.name}-${environment.project}-redshift`,
+            // matchCriteria: 44,
+            properties: {
+                "JDBC_ENFORCE_SSL": "false",
+                // "JDBC_CONNECTION_URL": "jdbc:redshift://dev-codemotion-cdk-etl-cluster.cv4q3eaj360w.eu-west-1.redshift.amazonaws.com:5439/dev-codemotion-cdk-etl",
+                "JDBC_CONNECTION_URL": `jdbc:redshift://${props.redshiftCluster.clusterEndpoint.socketAddress}/${props.redshiftDatabase}`, // "jdbc:redshift://dev-codemotion-cdk-etl-cluster.cv4q3eaj360w.eu-west-1.redshift.amazonaws.com:5439/dev-codemotion-cdk-etl",
+                "SECRET_ID": props.redshiftSecret.secretName, // "dev-codemotion-cdk-etl-secret",
+                "KAFKA_SSL_ENABLED": "false"
+            },
+            securityGroups: [props.redshiftSG],
+            subnet: props.subnets.private[0],
+        })
 
     
         const job = new Job(this, `Job`, {
@@ -115,7 +115,7 @@ export class DataProcessing extends Construct {
             workerType: WorkerType.G_1X,
             workerCount: 10,
             maxConcurrentRuns: 1,
-            // connections: [ props.jobConnection ], // Todo connection to RS
+            connections: [ rsJobConnection ], // Todo connection to RS
             defaultArguments: {
               "--TempDir": `s3://aws-glue-assets-919788038405-eu-west-1/${environment.name}-${environment.project}/temp/`,
               "--enable-glue-datacatalog": "true",
