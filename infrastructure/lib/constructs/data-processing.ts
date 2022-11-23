@@ -96,7 +96,7 @@ export class DataProcessing extends Construct {
             executable: JobExecutable.pythonEtl({
                 glueVersion: GlueVersion.V3_0,
                 pythonVersion: PythonVersion.THREE,
-                script: Code.fromAsset(path.join(__dirname,'src/glue-jobs/transformer/job.py')),
+                script: Code.fromAsset(path.join(__dirname, '..', '..', '..', 'src', 'glue-jobs', 'transformer', 'job.py')),
             }),
             workerType: WorkerType.G_1X,
             workerCount: 10,

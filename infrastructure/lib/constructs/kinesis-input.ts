@@ -11,6 +11,7 @@ import { CfnDeliveryStream } from "aws-cdk-lib/aws-kinesisfirehose";
 import { DeliveryStream, DestinationBindOptions, DestinationConfig, IDestination, StreamEncryption as FirehoseStreamEncryption } from "@aws-cdk/aws-kinesisfirehose-alpha";
 import { Database, Table, Schema, InputFormat, OutputFormat, SerializationLibrary, ClassificationString } from "@aws-cdk/aws-glue-alpha";
 import {environment} from "../../environment";
+import * as path from "path";
 
 export interface KinesisInputProps {
   // vpc: IVpc;
@@ -116,7 +117,7 @@ export class KinesisInput extends Construct {
       handler: 'index.lambda_handler',
       runtime: Runtime.PYTHON_3_9,
       role: validatorLambdaRole,
-      code: new AssetCode('src/lambdas/validator/'),
+      code: new AssetCode(path.join(__dirname, '..', '..', '..', 'src', 'lambdas', 'validator')),
       memorySize: 256,
       timeout: Duration.minutes(3),
       // onFailure: new lambdaSNSDestination(kinesisLambdaFailureTopic),
