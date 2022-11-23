@@ -19,10 +19,10 @@ import * as path from "path";
 export interface DataProcessingProps {
     vpc: IVpc;
     subnets: { public: ISubnet[]; natted: ISubnet[]; private: ISubnet[]; };
-    // redshiftCluster: Cluster;
-    // redshiftDatabase: string;
-    // redshiftSG: SecurityGroup;
-    // redshiftSecret: ISecret;
+    redshiftCluster: Cluster;
+    redshiftDatabase: string;
+    redshiftSG: SecurityGroup;
+    redshiftSecret: ISecret;
     inputBucket: Bucket;
     outputBucket: Bucket;
     // inputPrefix: string;
