@@ -23,7 +23,7 @@ def get_data():
     }
 
 
-for _ in range(10):
+for _ in range(250):
     data = get_data()
     print(data)
     client.put_record(

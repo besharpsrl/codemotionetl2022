@@ -5,34 +5,25 @@ import {environment} from "../../environment";
 import {Vpc, IVpc, ISubnet, Subnet, SecurityGroup} from "aws-cdk-lib/aws-ec2";
 import {Cluster, ClusterType, NodeType, ClusterParameterGroup, ClusterSubnetGroup} from "@aws-cdk/aws-redshift-alpha"
 import {ISecret, Secret} from "aws-cdk-lib/aws-secretsmanager";
-import { Queue, DeadLetterQueue } from "aws-cdk-lib/aws-sqs";
-import { SqsDestination } from "aws-cdk-lib/aws-s3-notifications";
-import { Role, ServicePrincipal, PolicyStatement, Effect, Policy, ManagedPolicy } from 'aws-cdk-lib/aws-iam';
+import { Topic } from "aws-cdk-lib/aws-sns";
+import { SnsDestination } from "aws-cdk-lib/aws-s3-notifications";
+import { Role, ServicePrincipal, ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 
 
 export interface DataStorageProps {
     vpc: IVpc;
     subnets: { public: ISubnet[]; natted: ISubnet[]; private: ISubnet[]; };
-    // merakiSecret: Secret;
-    // inputBucket: Bucket;
-    // inputPrefix: string;
-    // inputDataStore: CfnDatastore;
-    // imageOutputPrefix: string;
-    // carDataOutputPrefix: string;
 }
 
 export class DataStorage extends Construct {
     private readonly _masterUsername: string = 'admin';
     private readonly _defaultDB: string = `${environment.name}-${environment.project}`;
     private readonly _inputBucket: Bucket;
-    private readonly _failureQueue: Queue;
+    private readonly _failureTopic: Topic;
     private readonly _transformedBucket: Bucket;
     private readonly _clusterSg: SecurityGroup;
     private readonly _cluster: Cluster;
     private readonly _secret: Secret;
-
-    // public vpc: IVpc;
-    // public subnets: { public: ISubnet[]; natted: ISubnet[]; private: ISubnet[]; }
 
     constructor(scope: Construct, id: string, props: DataStorageProps) {
         super(scope, id);
@@ -45,12 +36,11 @@ export class DataStorage extends Construct {
             blockPublicAccess: new BlockPublicAccess(BlockPublicAccess.BLOCK_ALL)
         });
 
-        // TODO: failure handling
-        //  this._failureQueue = new Queue(this, 'InputFailureQueue', {
-        //     topicName: `${environment.name}-${environment.project}-transformation-sf-failure-topic`,
-        //     displayName: `${environment.name}-${environment.project}-transformation-sf-failure-topic`,
-        // });
-        // this._inputBucket.addEventNotification(EventType.OBJECT_CREATED, new SqsDestination(this._failureQueue), {prefix: 'failed_data/'})
+        this._failureTopic = new Topic(this, 'InputFailureTopic', {
+            topicName: `${environment.name}-${environment.project}-transformation-sf-failure-topic`,
+            displayName: `${environment.name}-${environment.project}-transformation-sf-failure-topic`,
+        });
+        this._inputBucket.addEventNotification(EventType.OBJECT_CREATED, new SnsDestination(this._failureTopic), {prefix: 'failed_data/'})
 
         this._transformedBucket = new Bucket(this, 'TransformedBucket', {
             bucketName: `${environment.name}-${environment.project}-processed`,
@@ -102,9 +92,6 @@ export class DataStorage extends Construct {
         this._cluster = new Cluster(this, 'Cluster', {
             clusterName: `${environment.name}-${environment.project}-cluster`,
             defaultDatabaseName: this._defaultDB,
-            // clusterType: ClusterType.SINGLE_NODE,
-            // nodeType: NodeType.DS2_XLARGE,
-            // numberOfNodes: 1,
             masterUser: {
                 masterUsername: this._masterUsername,
                 masterPassword: cdk.SecretValue.secretsManager(this._secret.secretArn, {jsonField: 'password'}),

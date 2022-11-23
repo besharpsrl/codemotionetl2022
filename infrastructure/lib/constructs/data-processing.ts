@@ -25,10 +25,6 @@ export interface DataProcessingProps {
     redshiftSecret: ISecret;
     inputBucket: Bucket;
     outputBucket: Bucket;
-    // inputPrefix: string;
-    // inputDataStore: CfnDatastore;
-    // imageOutputPrefix: string;
-    // carDataOutputPrefix: string;
 }
 
 export class DataProcessing extends Construct {
@@ -58,14 +54,11 @@ export class DataProcessing extends Construct {
         const failureStep = new SnsPublish(this, 'NotifyFailureStep', {
             topic: failureTopic,
             subject: `[Failure]: ${environment.name}-${environment.project}-transformation-sf`,
-            // message: sfn.TaskInput.fromJsonPathAt('$.message'),
             message: {
                 type: InputType.TEXT,
                 value: `Failure during ${environment.name}-${environment.project}-transformation-sf Step Function`
             },
-            // resultPath: '$.sns',
         }).next(new Fail(this, 'FailureStep', {
-            // cause: '',
             error: `[Failure]: ${environment.name}-${environment.project}-transformation-sf`,
         }))
 
@@ -91,21 +84,16 @@ export class DataProcessing extends Construct {
             description: `${environment.name}-${environment.project}-transformation-job-role`,
             assumedBy: new ServicePrincipal('glue.amazonaws.com')
         });
-        // props.inputBucket.grantRead(jobRole)
-        // props.outputBucket.grantReadWrite(jobRole)
-        // TODO: policies
         jobRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
 
         const rsJobConnection = new Connection(this, 'RedshiftJobConnection', {
             type: ConnectionType.JDBC,
             connectionName: `${environment.name}-${environment.project}-redshift`,
             description: `${environment.name}-${environment.project}-redshift`,
-            // matchCriteria: 44,
             properties: {
                 "JDBC_ENFORCE_SSL": "false",
-                // "JDBC_CONNECTION_URL": "jdbc:redshift://dev-codemotion-cdk-etl-cluster.cv4q3eaj360w.eu-west-1.redshift.amazonaws.com:5439/dev-codemotion-cdk-etl",
-                "JDBC_CONNECTION_URL": `jdbc:redshift://${props.redshiftCluster.clusterEndpoint.socketAddress}/${props.redshiftDatabase}`, // "jdbc:redshift://dev-codemotion-cdk-etl-cluster.cv4q3eaj360w.eu-west-1.redshift.amazonaws.com:5439/dev-codemotion-cdk-etl",
-                "SECRET_ID": props.redshiftSecret.secretName, // "dev-codemotion-cdk-etl-secret",
+                "JDBC_CONNECTION_URL": `jdbc:redshift://${props.redshiftCluster.clusterEndpoint.socketAddress}/${props.redshiftDatabase}`,
+                "SECRET_ID": props.redshiftSecret.secretName,
                 "KAFKA_SSL_ENABLED": "false"
             },
             securityGroups: [jobSG],
@@ -124,7 +112,7 @@ export class DataProcessing extends Construct {
             workerType: WorkerType.G_1X,
             workerCount: 10,
             maxConcurrentRuns: 1,
-            connections: [ rsJobConnection ], // Todo connection to RS
+            connections: [ rsJobConnection ],
             defaultArguments: {
               "--TempDir": `s3://aws-glue-assets-919788038405-eu-west-1/${environment.name}-${environment.project}/temp/`,
               "--enable-glue-datacatalog": "true",
@@ -133,7 +121,7 @@ export class DataProcessing extends Construct {
               "--enable-metrics": "true",
               "--class": "GlueApp",
               "--INPUT_BUCKET": props.inputBucket.bucketName,
-              "--OUTPUT_BUCKET": props.outputBucket.bucketName // TODO: RS info
+              "--OUTPUT_BUCKET": props.outputBucket.bucketName
             },
             continuousLogging: {
                 enabled: true,
@@ -152,13 +140,9 @@ export class DataProcessing extends Construct {
         // ************************* */
         const transformationJobStep = new GlueStartJobRun(this, 'transformationJobStep', {
             glueJobName: job.jobName,
-            // arguments: {},
             integrationPattern: IntegrationPattern.RUN_JOB,
-            // inputPath: '',
-            // outputPath: '',
-        }).addRetry({maxAttempts: 5}).addCatch(failureStep, {
-            // resultPath:
-        });;
+        }).addRetry({maxAttempts: 5}).addCatch(failureStep, {});
+
 
         // /* **********************
         //    SF Definition
@@ -168,7 +152,6 @@ export class DataProcessing extends Construct {
             description: `${environment.name}-${environment.project}-transformation-sf-role`,
             assumedBy: new ServicePrincipal('states.amazonaws.com')
         });
-        // failureTopic.grantPublish(transformationSfRole) and invoke glue
         transformationSfRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
 
 

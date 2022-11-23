@@ -50,16 +50,12 @@ export class InfrastructureStack extends Stack {
             natted: environment.subnets.natted.map((s, idx) => Subnet.fromSubnetAttributes(this, `SubnetNatted${idx}`, {subnetId: s.subnetId, availabilityZone: s.availabilityZone})),
             private: environment.subnets.private.map((s, idx) => Subnet.fromSubnetAttributes(this, `SubnetPrivate${idx}`, {subnetId: s.subnetId, availabilityZone: s.availabilityZone})),
         }
-        // this.subnets = [
-        //     Subnet.fromSubnetId(this, 'SubnetPublicA', environment.subnetPublic)
-        // ];
 
         /* **********************
             Stacks
         ************************* */
         this.lambdaLayersNestedStack = new LambdaLayersNestedStack(this, "LambdaLayersNestedStack", {})
 
-        // TODO: create RS
         this.dataStorage = new DataStorage(this, 'DataStorage', {
             vpc: this.vpc,
             subnets: this.subnets,

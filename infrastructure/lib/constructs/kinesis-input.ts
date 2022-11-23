@@ -14,10 +14,7 @@ import {environment} from "../../environment";
 import * as path from "path";
 
 export interface KinesisInputProps {
-  // vpc: IVpc;
-  // subnets: ISubnet[];
   inputBucket: Bucket;
-  // outputBucket: Bucket;
 }
 
 export class S3CustomDestination implements IDestination {
@@ -197,12 +194,6 @@ export class KinesisInput extends Construct {
         logGroupName: deliveryStreamLogGroup.logGroupName,
         logStreamName: deliveryStreamLogGroup.logGroupName
     },
-    // encryptionConfiguration: {
-    //     // kmsEncryptionConfig: {
-    //     //     awskmsKeyArn: props.kms.keyArn,
-    //     // }
-    //     noEncryptionConfig: 'noEncryptionConfig',
-    // },
     dataFormatConversionConfiguration: {
         enabled: true,
         inputFormatConfiguration: {
@@ -225,11 +216,8 @@ export class KinesisInput extends Construct {
     },
   });
 
-   // needed for processers to return data to stream
-
   const deliveryStream = new DeliveryStream(this, `InputDataDeliveryStream`, {
     deliveryStreamName: `${environment.name}-${environment.project}-delivery-stream`,
-    // encryption: FirehoseStreamEncryption.AWS_OWNED,
     role: deliveryStreamRole,
     sourceStream: dataStream,
     destinations: [deliveryDestination],
