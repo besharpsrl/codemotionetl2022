@@ -161,21 +161,21 @@ export class DataProcessing extends Construct {
         // const definition = crawlerStep.next(transformationJobStep);
         const definition = transformationJobStep;
 
-        // const transformationSf  = new StateMachine(this, 'TransformationSf', {
-        //     stateMachineName: `${environment.name}-${environment.project}-transformation`,
-        //     definition: definition,
-        //     role: transformationSfRole
-        // });
+        const transformationSf  = new StateMachine(this, 'TransformationSf', {
+            stateMachineName: `${environment.name}-${environment.project}-transformation`,
+            definition: definition,
+            role: transformationSfRole
+        });
 
-        // /* **********************
-        //     SF Daily Trigger
-        // ************************* */
-        // const dailyTrigger = new Rule(this, 'DailyRefreshTrigger', {
-        //     ruleName: `${environment.name}-${environment.project}-daily-refresh`,
-        //     description: `Trigger for transformation SF ${environment.name}-${environment.project} to refresh data for QuickSight dashboard daily`,
-        //     schedule: Schedule.expression('rate(2 hours)'),
-        //     targets: [new SfnStateMachine(transformationSf, {})]
-        // });
+        /* **********************
+            SF Daily Trigger
+        ************************* */
+        const dailyTrigger = new Rule(this, 'DailyRefreshTrigger', {
+            ruleName: `${environment.name}-${environment.project}-daily-refresh`,
+            description: `Trigger for transformation SF ${environment.name}-${environment.project} to refresh data for QuickSight dashboard daily`,
+            schedule: Schedule.expression('rate(2 hours)'),
+            targets: [new SfnStateMachine(transformationSf, {})]
+        });
 
     }
 
