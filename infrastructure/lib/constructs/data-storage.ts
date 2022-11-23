@@ -102,9 +102,9 @@ export class DataStorage extends Construct {
         this._cluster = new Cluster(this, 'Cluster', {
             clusterName: `${environment.name}-${environment.project}-cluster`,
             defaultDatabaseName: this._defaultDB,
-            clusterType: ClusterType.SINGLE_NODE,
-            nodeType: NodeType.DS2_XLARGE,
-            numberOfNodes: 1,
+            // clusterType: ClusterType.SINGLE_NODE,
+            // nodeType: NodeType.DS2_XLARGE,
+            // numberOfNodes: 1,
             masterUser: {
                 masterUsername: this._masterUsername,
                 masterPassword: cdk.SecretValue.secretsManager(this._secret.secretArn, {jsonField: 'password'}),
