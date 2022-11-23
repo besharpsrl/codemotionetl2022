@@ -67,10 +67,10 @@ export class InfrastructureStack extends Stack {
         this.dataProcessing = new DataProcessing(this, 'DataProcessing', {
             vpc: this.vpc,
             subnets: this.subnets,
-            redshiftCluster: this.dataStorage.cluster,
-            redshiftDatabase: this.dataStorage.clusterDB,
-            redshiftSG: this.dataStorage.clusterSG,
-            redshiftSecret: this.dataStorage.clusterSecret,
+            // redshiftCluster: this.dataStorage.cluster,
+            // redshiftDatabase: this.dataStorage.clusterDB,
+            // redshiftSG: this.dataStorage.clusterSG,
+            // redshiftSecret: this.dataStorage.clusterSecret,
             inputBucket: this.dataStorage.inputBucket,
             outputBucket: this.dataStorage.transformedBucket
         });
