@@ -46,9 +46,9 @@ export class InfrastructureStack extends Stack {
         });
 
         this.subnets = {
-            public: environment.subnets.public.map((s, idx) => Subnet.fromSubnetId(this, `SubnetPublic${idx}`, s)),
-            natted: environment.subnets.natted.map((s, idx) => Subnet.fromSubnetId(this, `SubnetNatted${idx}`, s)),
-            private: environment.subnets.private.map((s, idx) => Subnet.fromSubnetId(this, `SubnetPrivate${idx}`, s)),
+            public: environment.subnets.public.map((s, idx) => Subnet.fromSubnetAttributes(this, `SubnetPublic${idx}`, {subnetId: s.subnetId, availabilityZone: s.availabilityZone})),
+            natted: environment.subnets.natted.map((s, idx) => Subnet.fromSubnetAttributes(this, `SubnetNatted${idx}`, {subnetId: s.subnetId, availabilityZone: s.availabilityZone})),
+            private: environment.subnets.private.map((s, idx) => Subnet.fromSubnetAttributes(this, `SubnetPrivate${idx}`, {subnetId: s.subnetId, availabilityZone: s.availabilityZone})),
         }
         // this.subnets = [
         //     Subnet.fromSubnetId(this, 'SubnetPublicA', environment.subnetPublic)

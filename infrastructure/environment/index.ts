@@ -10,9 +10,18 @@ let env: {
     };
     vpcId: string;
     subnets: {
-        public: string[];
-        private: string[];
-        natted: string[];
+        public: {
+            availabilityZone: string;
+            subnetId: string;
+        }[];
+        private: {
+            availabilityZone: string;
+            subnetId: string;
+        }[];
+        natted: {
+            availabilityZone: string;
+            subnetId: string;
+        }[];
     };
 };
 
