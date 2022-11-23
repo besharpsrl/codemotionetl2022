@@ -3,22 +3,26 @@ import {Construct} from 'constructs';
 import {Bucket, BucketEncryption, BucketAccessControl, BlockPublicAccess} from 'aws-cdk-lib/aws-s3';
 import {environment} from "../../environment";
 import {Cluster} from "@aws-cdk/aws-redshift-alpha"
-import {IVpc} from "aws-cdk-lib/aws-ec2";
+import {IVpc, ISubnet, SecurityGroup} from "aws-cdk-lib/aws-ec2";
 import {ISecret, Secret} from "aws-cdk-lib/aws-secretsmanager";
 import { Role, ServicePrincipal, PolicyStatement, Effect, Policy, ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 
-import {Job, JobExecutable, GlueVersion, PythonVersion, WorkerType, Code, Connection, IConnection} from "@aws-cdk/aws-glue-alpha";
+import {Job, JobExecutable, GlueVersion, PythonVersion, WorkerType, Code, Connection, ConnectionType} from "@aws-cdk/aws-glue-alpha";
 
 import { CfnStateMachine, StateMachine, Pass, IntegrationPattern, Chain, Parallel, Condition, Choice, Wait, Map, InputType, Fail } from 'aws-cdk-lib/aws-stepfunctions';
 import { GlueStartJobRun, SnsPublish } from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import * as path from "path";
 
+
 export interface DataProcessingProps {
-    // vpc: IVpc;
-    // subnets: ISubnet[];
-    // merakiSecret: Secret;
+    vpc: IVpc;
+    subnets: { public: ISubnet[]; natted: ISubnet[]; private: ISubnet[]; };
+    redshiftCluster: Cluster;
+    redshiftDatabase: string;
+    redshiftSG: SecurityGroup;
+    redshiftSecret: ISecret;
     inputBucket: Bucket;
     outputBucket: Bucket;
     // inputPrefix: string;
@@ -37,7 +41,7 @@ export class DataProcessing extends Construct {
         super(scope, id);
 
         // TODO:
-        // - create glue connection (to RS)
+        // - create glue connection (to RS) --> test-codemotion-rs
         // - glue code (double data sink)
         // - create and test crawler // forse non serve, lo fa già il job
         // - update SF with crawler
@@ -83,8 +87,23 @@ export class DataProcessing extends Construct {
         // TODO: policies
         jobRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
 
-        // Todo create
-        // const jobConnection = Connection.fromConnectionName(this, 'JobConnection', environment.glueConnectionName)
+        // // Todo create
+        // // aws glue get-connection --name test-codemotion-rs
+        // const jobConnection = new Connection(this, 'JobConnection', {
+        //     type: ConnectionType.JDBC,
+        //     connectionName: `${environment.name}-${environment.project}-redshift`,
+        //     description: `${environment.name}-${environment.project}-redshift`,
+        //     // matchCriteria: 44,
+        //     properties: {
+        //         "JDBC_ENFORCE_SSL": "false",
+        //         // "JDBC_CONNECTION_URL": "jdbc:redshift://dev-codemotion-cdk-etl-cluster.cv4q3eaj360w.eu-west-1.redshift.amazonaws.com:5439/dev-codemotion-cdk-etl",
+        //         "JDBC_CONNECTION_URL": `jdbc:redshift://${props.redshiftCluster.clusterEndpoint.socketAddress}/${props.redshiftDatabase}`, // "jdbc:redshift://dev-codemotion-cdk-etl-cluster.cv4q3eaj360w.eu-west-1.redshift.amazonaws.com:5439/dev-codemotion-cdk-etl",
+        //         "SECRET_ID": props.redshiftSecret.secretName, // "dev-codemotion-cdk-etl-secret",
+        //         "KAFKA_SSL_ENABLED": "false"
+        //     },
+        //     securityGroups: [props.redshiftSG],
+        //     subnet: props.subnets.private[0],
+        // })
 
     
         const job = new Job(this, `Job`, {

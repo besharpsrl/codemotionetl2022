@@ -61,9 +61,16 @@ export class InfrastructureStack extends Stack {
 
         // TODO: create RS
         this.dataStorage = new DataStorage(this, 'DataStorage', {
-            vpc: this.vpc
+            vpc: this.vpc,
+            subnets: this.subnets,
         });
         this.dataProcessing = new DataProcessing(this, 'DataProcessing', {
+            vpc: this.vpc,
+            subnets: this.subnets,
+            redshiftCluster: this.dataStorage.cluster,
+            redshiftDatabase: this.dataStorage.clusterDB,
+            redshiftSG: this.dataStorage.clusterSG,
+            redshiftSecret: this.dataStorage.clusterSecret,
             inputBucket: this.dataStorage.inputBucket,
             outputBucket: this.dataStorage.transformedBucket
         });
