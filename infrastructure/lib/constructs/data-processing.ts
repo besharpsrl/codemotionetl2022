@@ -100,7 +100,7 @@ export class DataProcessing extends Construct {
                 "KAFKA_SSL_ENABLED": "false"
             },
             securityGroups: [props.redshiftSG],
-            subnet: props.subnets.private[0],
+            subnet: props.subnets.private[2],
         })
 
     
