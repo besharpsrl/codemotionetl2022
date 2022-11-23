@@ -5,7 +5,7 @@ import {environment} from "../../environment";
 import {Cluster} from "@aws-cdk/aws-redshift-alpha"
 import {IVpc} from "aws-cdk-lib/aws-ec2";
 import {ISecret, Secret} from "aws-cdk-lib/aws-secretsmanager";
-import { Role, ServicePrincipal, PolicyStatement, Effect, Policy } from 'aws-cdk-lib/aws-iam';
+import { Role, ServicePrincipal, PolicyStatement, Effect, Policy, ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 
@@ -37,11 +37,8 @@ export class DataProcessing extends Construct {
         super(scope, id);
 
         // TODO:
-        // - create glue support bucket (create with manual glue) --> vedere se serve importarlo e dare i permessi
         // - create glue connection (to RS)
         // - glue code (double data sink)
-        // - check glue Role
-        // - update and check SF Role
         // - create and test crawler // forse non serve, lo fa già il job
         // - update SF with crawler
         // - athena + QS with table created by crawler
@@ -81,10 +78,10 @@ export class DataProcessing extends Construct {
             description: `${environment.name}-${environment.project}-transformation-job-role`,
             assumedBy: new ServicePrincipal('glue.amazonaws.com')
         });
-        props.inputBucket.grantRead(jobRole)
-        props.outputBucket.grantReadWrite(jobRole)
+        // props.inputBucket.grantRead(jobRole)
+        // props.outputBucket.grantReadWrite(jobRole)
         // TODO: policies
-        // jobRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
+        jobRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
 
         // Todo create
         // const jobConnection = Connection.fromConnectionName(this, 'JobConnection', environment.glueConnectionName)
@@ -145,18 +142,9 @@ export class DataProcessing extends Construct {
             description: `${environment.name}-${environment.project}-transformation-sf-role`,
             assumedBy: new ServicePrincipal('states.amazonaws.com')
         });
-        failureTopic.grantPublish(transformationSfRole)
-        // TODO: grant invoke glue
+        // failureTopic.grantPublish(transformationSfRole) and invoke glue
+        transformationSfRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
 
-        // transformationSfRole.addToPolicy(
-        //     new PolicyStatement({
-        //         effect: Effect.ALLOW,
-        //         resources: ['*'],
-        //         actions: [
-        //                 "*"
-        //             ]
-        //     })
-        // );
 
         // TODO:
         // const definition = crawlerStep.next(transformationJobStep);

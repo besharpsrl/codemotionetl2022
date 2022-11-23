@@ -67,33 +67,10 @@ export class InfrastructureStack extends Stack {
             inputBucket: this.dataStorage.inputBucket,
             outputBucket: this.dataStorage.transformedBucket
         });
-        const synchRedshiftFunctionRole = new Role(this, `SynchRedshiftFunctionRole`, {
-            roleName: `${environment.name}-${environment.project}-synch-redshift-role`,
-            description: '',
-            assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
-            managedPolicies: [
-                ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
-            ],
-        })
-        const synchRedshiftFunction = new aws_lambda.Function(this, "SynchRedshiftFunction", {
-            functionName: `${environment.name}-${environment.project}-synch-redshift`,
-            handler: 'handler.handler',
-            code: aws_lambda.Code.fromAsset(path.join(__dirname, '..', '..', 'src', 'lambdas', 'synch-redshift')),
-            runtime: aws_lambda.Runtime.PYTHON_3_9,
-            memorySize: 512,
-            timeout: Duration.minutes(3),
-            layers: this.lambdaLayersNestedStack.layers,
-            role: synchRedshiftFunctionRole,
-            environment: {SECRET_ARN: this.dataStorage.clusterSecret.secretArn}
-        })
-        this.dataStorage.transformedBucket.addObjectCreatedNotification(new aws_s3_notifications.LambdaDestination(synchRedshiftFunction));
 
         this.kinesisInput = new KinesisInput(this, 'KinesisInput', {
             inputBucket: this.dataStorage.inputBucket
         });
-
-        // Crawler su transformed bucket
-
 
     }
 }

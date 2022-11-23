@@ -1,10 +1,13 @@
 import * as cdk from 'aws-cdk-lib';
 import {Construct} from 'constructs';
-import {Bucket, BucketEncryption, BucketAccessControl, BlockPublicAccess} from 'aws-cdk-lib/aws-s3';
+import {Bucket, BucketEncryption, BucketAccessControl, BlockPublicAccess, EventType} from 'aws-cdk-lib/aws-s3';
 import {environment} from "../../environment";
 import {Cluster} from "@aws-cdk/aws-redshift-alpha"
 import {IVpc} from "aws-cdk-lib/aws-ec2";
 import {ISecret, Secret} from "aws-cdk-lib/aws-secretsmanager";
+import { Queue, DeadLetterQueue } from "aws-cdk-lib/aws-sqs";
+import { SqsDestination } from "aws-cdk-lib/aws-s3-notifications";
+
 
 export interface DataStorageProps {
     vpc: IVpc;
@@ -19,6 +22,7 @@ export interface DataStorageProps {
 
 export class DataStorage extends Construct {
     private readonly _inputBucket: Bucket;
+    private readonly _failureQueue: Queue;
     private readonly _transformedBucket: Bucket;
     private readonly _cluster: Cluster;
     private readonly _secret: Secret;
@@ -33,6 +37,13 @@ export class DataStorage extends Construct {
             accessControl: BucketAccessControl.PRIVATE,
             blockPublicAccess: new BlockPublicAccess(BlockPublicAccess.BLOCK_ALL)
         });
+
+        // TODO: failure handling
+        //  this._failureQueue = new Queue(this, 'InputFailureQueue', {
+        //     topicName: `${environment.name}-${environment.project}-transformation-sf-failure-topic`,
+        //     displayName: `${environment.name}-${environment.project}-transformation-sf-failure-topic`,
+        // });
+        // this._inputBucket.addEventNotification(EventType.OBJECT_CREATED, new SqsDestination(this._failureQueue), {prefix: 'failed_data/'})
 
         this._transformedBucket = new Bucket(this, 'TransformedBucket', {
             bucketName: `${environment.name}-${environment.project}-processed`,
