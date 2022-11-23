@@ -37,8 +37,8 @@ export class DataStorage extends Construct {
         });
 
         this._failureTopic = new Topic(this, 'InputFailureTopic', {
-            topicName: `${environment.name}-${environment.project}-transformation-sf-failure-topic`,
-            displayName: `${environment.name}-${environment.project}-transformation-sf-failure-topic`,
+            topicName: `${environment.name}-${environment.project}-transformation-input-failure-topic`,
+            displayName: `${environment.name}-${environment.project}-transformation-input-failure-topic`,
         });
         this._inputBucket.addEventNotification(EventType.OBJECT_CREATED, new SnsDestination(this._failureTopic), {prefix: 'failed_data/'})
 

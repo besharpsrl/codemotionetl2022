@@ -13,6 +13,8 @@ import {Job, JobExecutable, GlueVersion, PythonVersion, WorkerType, Code, Connec
 
 import { CfnStateMachine, StateMachine, Pass, IntegrationPattern, Chain, Parallel, Condition, Choice, Wait, Map, InputType, Fail } from 'aws-cdk-lib/aws-stepfunctions';
 import { GlueStartJobRun, SnsPublish } from 'aws-cdk-lib/aws-stepfunctions-tasks';
+import {Rule, Schedule} from "aws-cdk-lib/aws-events";
+import {SfnStateMachine} from "aws-cdk-lib/aws-events-targets";
 import * as path from "path";
 
 
@@ -159,11 +161,21 @@ export class DataProcessing extends Construct {
         // const definition = crawlerStep.next(transformationJobStep);
         const definition = transformationJobStep;
 
-        const paidMediaSf  = new StateMachine(this, 'PaidMediaSf', {
-            stateMachineName: `${environment.name}-${environment.project}-transformation`,
-            definition: definition,
-            role: transformationSfRole
-        });
+        // const transformationSf  = new StateMachine(this, 'TransformationSf', {
+        //     stateMachineName: `${environment.name}-${environment.project}-transformation`,
+        //     definition: definition,
+        //     role: transformationSfRole
+        // });
+
+        // /* **********************
+        //     SF Daily Trigger
+        // ************************* */
+        // const dailyTrigger = new Rule(this, 'DailyRefreshTrigger', {
+        //     ruleName: `${environment.name}-${environment.project}-daily-refresh`,
+        //     description: `Trigger for transformation SF ${environment.name}-${environment.project} to refresh data for QuickSight dashboard daily`,
+        //     schedule: Schedule.expression('rate(2 hours)'),
+        //     targets: [new SfnStateMachine(transformationSf, {})]
+        // });
 
     }
 
