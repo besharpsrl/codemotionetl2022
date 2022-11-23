@@ -78,7 +78,7 @@ export class DataProcessing extends Construct {
             vpc: props.vpc,
             allowAllOutbound: true
         });
-        jobSG.addIngressRule(Peer.securityGroupId(jobSG.securityGroupId), Port.allTcp(), 'Self ingress')
+        // jobSG.addIngressRule(Peer.securityGroupId(jobSG.securityGroupId), Port.allTcp(), 'Self ingress')
         props.redshiftSG.addIngressRule(Peer.securityGroupId(jobSG.securityGroupId), Port.tcp(5439), 'Ingress from Glue Job')
 
         const jobLogGroup = new LogGroup(this, `JobLogGroup`, {
