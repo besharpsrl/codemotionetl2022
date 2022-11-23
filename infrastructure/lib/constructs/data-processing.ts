@@ -3,7 +3,7 @@ import {Construct} from 'constructs';
 import {Bucket, BucketEncryption, BucketAccessControl, BlockPublicAccess} from 'aws-cdk-lib/aws-s3';
 import {environment} from "../../environment";
 import {Cluster} from "@aws-cdk/aws-redshift-alpha"
-import {IVpc, ISubnet, SecurityGroup} from "aws-cdk-lib/aws-ec2";
+import {IVpc, ISubnet, SecurityGroup, Peer, Port, } from "aws-cdk-lib/aws-ec2";
 import {ISecret, Secret} from "aws-cdk-lib/aws-secretsmanager";
 import { Role, ServicePrincipal, PolicyStatement, Effect, Policy, ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import { Topic } from 'aws-cdk-lib/aws-sns';
@@ -72,6 +72,14 @@ export class DataProcessing extends Construct {
         // /* **********************
         //     Glue components
         // ************************* */
+        const jobSG = new SecurityGroup(this, 'JobSG', {
+            securityGroupName: `${environment.name}-${environment.project}-job-sg`,
+            description: `${environment.name}-${environment.project}-job-sg`,
+            vpc: props.vpc,
+            allowAllOutbound: true
+        });
+        props.redshiftSG.addIngressRule(Peer.securityGroupId(jobSG.securityGroupId), Port.tcp(5439), 'Ingress from Glue Job')
+
         const jobLogGroup = new LogGroup(this, `JobLogGroup`, {
             logGroupName: `${environment.name}-${environment.project}-transformation-job`,
             retention: environment.name == 'prod' ? RetentionDays.INFINITE : RetentionDays.ONE_WEEK
@@ -99,7 +107,7 @@ export class DataProcessing extends Construct {
                 "SECRET_ID": props.redshiftSecret.secretName, // "dev-codemotion-cdk-etl-secret",
                 "KAFKA_SSL_ENABLED": "false"
             },
-            securityGroups: [props.redshiftSG],
+            securityGroups: [jobSG],
             subnet: props.subnets.private[2],
         })
 
