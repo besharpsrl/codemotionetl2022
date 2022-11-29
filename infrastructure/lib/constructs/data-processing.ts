@@ -21,10 +21,6 @@ import * as path from "path";
 export interface DataProcessingProps {
     vpc: IVpc;
     subnets: { public: ISubnet[]; natted: ISubnet[]; private: ISubnet[]; };
-    redshiftCluster: Cluster;
-    redshiftDatabase: string;
-    redshiftSG: SecurityGroup;
-    redshiftSecret: ISecret;
     inputBucket: Bucket;
     outputBucket: Bucket;
 }
@@ -38,32 +34,6 @@ export class DataProcessing extends Construct {
     constructor(scope: Construct, id: string, props: DataProcessingProps) {
         super(scope, id);
 
-        // TODO:
-        // - create glue connection (to RS) --> test-codemotion-rs
-        // - glue code (double data sink)
-        // - create and test crawler // forse non serve, lo fa già il job
-        // - update SF with crawler
-        // - athena + QS with table created by crawler
-
-        // /* **********************
-        //     Failure Handling
-        // ************************* */
-        const failureTopic = new Topic(this, 'FailureTopic', {
-            topicName: `${environment.name}-${environment.project}-transformation-sf-failure-topic`,
-            displayName: `${environment.name}-${environment.project}-transformation-sf-failure-topic`,
-        });
-
-        const failureStep = new SnsPublish(this, 'NotifyFailureStep', {
-            topic: failureTopic,
-            subject: `[Failure]: ${environment.name}-${environment.project}-transformation-sf`,
-            message: {
-                type: InputType.TEXT,
-                value: `Failure during ${environment.name}-${environment.project}-transformation-sf Step Function`
-            },
-        }).next(new Fail(this, 'FailureStep', {
-            error: `[Failure]: ${environment.name}-${environment.project}-transformation-sf`,
-        }))
-
         // /* **********************
         //     Glue components
         // ************************* */
@@ -73,8 +43,6 @@ export class DataProcessing extends Construct {
             vpc: props.vpc,
             allowAllOutbound: true
         });
-        // jobSG.addIngressRule(Peer.securityGroupId(jobSG.securityGroupId), Port.allTcp(), 'Self ingress')
-        props.redshiftSG.addIngressRule(Peer.securityGroupId(jobSG.securityGroupId), Port.tcp(5439), 'Ingress from Glue Job')
 
         const jobLogGroup = new LogGroup(this, `JobLogGroup`, {
             logGroupName: `${environment.name}-${environment.project}-transformation-job`,
@@ -88,20 +56,6 @@ export class DataProcessing extends Construct {
         });
         jobRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
 
-        const rsJobConnection = new Connection(this, 'RedshiftJobConnection', {
-            type: ConnectionType.JDBC,
-            connectionName: `${environment.name}-${environment.project}-redshift`,
-            description: `${environment.name}-${environment.project}-redshift`,
-            properties: {
-                "JDBC_ENFORCE_SSL": "false",
-                "JDBC_CONNECTION_URL": `jdbc:redshift://${props.redshiftCluster.clusterEndpoint.socketAddress}/${props.redshiftDatabase}`,
-                "SECRET_ID": props.redshiftSecret.secretName,
-                "KAFKA_SSL_ENABLED": "false"
-            },
-            securityGroups: [jobSG],
-            subnet: props.subnets.natted[2],
-        })
-
     
         const job = new Job(this, `Job`, {
             jobName: `${environment.name}-${environment.project}-transformation-job`,
@@ -114,7 +68,6 @@ export class DataProcessing extends Construct {
             workerType: WorkerType.G_1X,
             workerCount: 10,
             maxConcurrentRuns: 1,
-            connections: [ rsJobConnection ],
             defaultArguments: {
               "--TempDir": `s3://aws-glue-assets-919788038405-eu-west-1/${environment.name}-${environment.project}/temp/`,
               "--enable-glue-datacatalog": "true",
@@ -136,6 +89,25 @@ export class DataProcessing extends Construct {
             maxRetries: 3,
         });
 
+        // /* **********************
+        //     SF Failure Handling
+        // ************************* */
+        const failureTopic = new Topic(this, 'FailureTopic', {
+            topicName: `${environment.name}-${environment.project}-transformation-sf-failure-topic`,
+            displayName: `${environment.name}-${environment.project}-transformation-sf-failure-topic`,
+        });
+
+        const failureStep = new SnsPublish(this, 'NotifyFailureStep', {
+            topic: failureTopic,
+            subject: `[Failure]: ${environment.name}-${environment.project}-transformation-sf`,
+            message: {
+                type: InputType.TEXT,
+                value: `Failure during ${environment.name}-${environment.project}-transformation-sf Step Function`
+            },
+        }).next(new Fail(this, 'FailureStep', {
+            error: `[Failure]: ${environment.name}-${environment.project}-transformation-sf`,
+        }))
+
 
         // /* **********************
         //    SF Steps
@@ -156,23 +128,18 @@ export class DataProcessing extends Construct {
         });
         transformationSfRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
 
-
-        // TODO:
-        // const definition = crawlerStep.next(transformationJobStep);
-        const definition = transformationJobStep;
-
         const transformationSf  = new StateMachine(this, 'TransformationSf', {
             stateMachineName: `${environment.name}-${environment.project}-transformation`,
-            definition: definition,
+            definition: transformationJobStep,
             role: transformationSfRole
         });
 
         /* **********************
             SF Daily Trigger
         ************************* */
-        const dailyTrigger = new Rule(this, 'DailyRefreshTrigger', {
+        const sfrigger = new Rule(this, 'RefreshTrigger', {
             ruleName: `${environment.name}-${environment.project}-daily-refresh`,
-            description: `Trigger for transformation SF ${environment.name}-${environment.project} to refresh data for QuickSight dashboard daily`,
+            description: `Trigger for transformation SF ${environment.name}-${environment.project} to refresh data for QuickSight dashboard every 2 hours`,
             schedule: Schedule.expression('rate(2 hours)'),
             targets: [new SfnStateMachine(transformationSf, {})]
         });

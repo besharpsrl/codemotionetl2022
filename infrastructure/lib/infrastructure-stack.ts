@@ -5,7 +5,6 @@ import {DataStorage} from "./constructs/data-storage";
 import {DataProcessing} from "./constructs/data-processing";
 import {KinesisInput} from "./constructs/kinesis-input";
 import {Vpc, IVpc, ISubnet, Subnet} from "aws-cdk-lib/aws-ec2";
-import {LambdaLayersNestedStack} from "./nested/lambdalayers-stack";
 import * as path from "path";
 import {ManagedPolicy, Role, ServicePrincipal} from "aws-cdk-lib/aws-iam";
 
@@ -30,7 +29,6 @@ export class InfrastructureStack extends Stack {
     public vpc: IVpc;
     public subnets: { public: ISubnet[]; natted: ISubnet[]; private: ISubnet[]; }
 
-    private readonly lambdaLayersNestedStack: LambdaLayersNestedStack;
     private readonly dataStorage: DataStorage;
     private readonly kinesisInput: KinesisInput;
     private readonly dataProcessing: DataProcessing;
@@ -54,25 +52,20 @@ export class InfrastructureStack extends Stack {
         /* **********************
             Stacks
         ************************* */
-        this.lambdaLayersNestedStack = new LambdaLayersNestedStack(this, "LambdaLayersNestedStack", {})
-
         this.dataStorage = new DataStorage(this, 'DataStorage', {
             vpc: this.vpc,
             subnets: this.subnets,
         });
-        this.dataProcessing = new DataProcessing(this, 'DataProcessing', {
-            vpc: this.vpc,
-            subnets: this.subnets,
-            redshiftCluster: this.dataStorage.cluster,
-            redshiftDatabase: this.dataStorage.clusterDB,
-            redshiftSG: this.dataStorage.clusterSG,
-            redshiftSecret: this.dataStorage.clusterSecret,
-            inputBucket: this.dataStorage.inputBucket,
-            outputBucket: this.dataStorage.transformedBucket
-        });
 
         this.kinesisInput = new KinesisInput(this, 'KinesisInput', {
             inputBucket: this.dataStorage.inputBucket
+        });
+
+        this.dataProcessing = new DataProcessing(this, 'DataProcessing', {
+            vpc: this.vpc,
+            subnets: this.subnets,
+            inputBucket: this.dataStorage.inputBucket,
+            outputBucket: this.dataStorage.transformedBucket
         });
 
     }

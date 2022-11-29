@@ -16,14 +16,9 @@ export interface DataStorageProps {
 }
 
 export class DataStorage extends Construct {
-    private readonly _masterUsername: string = 'admin';
-    private readonly _defaultDB: string = `${environment.name}-${environment.project}`;
     private readonly _inputBucket: Bucket;
     private readonly _failureTopic: Topic;
     private readonly _transformedBucket: Bucket;
-    private readonly _clusterSg: SecurityGroup;
-    private readonly _cluster: Cluster;
-    private readonly _secret: Secret;
 
     constructor(scope: Construct, id: string, props: DataStorageProps) {
         super(scope, id);
@@ -50,60 +45,6 @@ export class DataStorage extends Construct {
             blockPublicAccess: new BlockPublicAccess(BlockPublicAccess.BLOCK_ALL)
         });
 
-        const rsRole = new Role(this, 'JobRole', {
-            roleName: `${environment.name}-${environment.project}-redshift-role`,
-            description: `${environment.name}-${environment.project}-redshift-role`,
-            assumedBy: new ServicePrincipal('redshift.amazonaws.com')
-        });
-        rsRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName("AdministratorAccess"));
-
-
-        this._secret = new Secret(this, 'Secret', {
-            secretName: `${environment.name}-${environment.project}-secret`,
-            generateSecretString: {
-                secretStringTemplate: JSON.stringify({
-                    username: this._masterUsername,
-                    host: '',
-                    dbname: `${environment.name}-${environment.project}`,
-                }),
-                generateStringKey: 'password',
-                excludeCharacters: '/@" '
-            },
-        });
-
-        this._clusterSg = new SecurityGroup(this, 'ClusterSG', {
-            securityGroupName: `${environment.name}-${environment.project}-rs-sg`,
-            description: `${environment.name}-${environment.project}-rs-sg`,
-            vpc: props.vpc,
-            allowAllOutbound: true
-        });
-
-        const subnetGroup = new ClusterSubnetGroup(this, 'SubnetGroup', {
-            description: `${environment.name}-${environment.project}-cluster-subnet-group`,
-            vpc: props.vpc,
-            vpcSubnets: {subnets: props.subnets.private}
-        })
-
-        const parameterGroup = new ClusterParameterGroup(this, 'ParameterGroup', {
-            description: `${environment.name}-${environment.project}-cluster-param-group`,
-            parameters: {}
-        })
-
-        this._cluster = new Cluster(this, 'Cluster', {
-            clusterName: `${environment.name}-${environment.project}-cluster`,
-            defaultDatabaseName: this._defaultDB,
-            masterUser: {
-                masterUsername: this._masterUsername,
-                masterPassword: cdk.SecretValue.secretsManager(this._secret.secretArn, {jsonField: 'password'}),
-            },
-            roles: [rsRole],
-            parameterGroup: parameterGroup,
-            subnetGroup: subnetGroup,
-            securityGroups: [this._clusterSg],
-            vpc: props.vpc,
-        });
-
-
     }
 
     public get inputBucket(): Bucket {
@@ -112,22 +53,6 @@ export class DataStorage extends Construct {
 
     public get transformedBucket(): Bucket {
         return this._transformedBucket;
-    }
-
-    public get cluster(): Cluster {
-        return this._cluster;
-    }
-
-    public get clusterDB(): string {
-        return this._defaultDB;
-    }
-
-    public get clusterSecret(): ISecret {
-        return this._secret;
-    }
-
-    public get clusterSG(): SecurityGroup {
-        return this._clusterSg;
     }
 
 }

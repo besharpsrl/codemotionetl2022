@@ -50,31 +50,7 @@ export class PipelineStack extends Stack {
                 account: environment.account,
                 region: environment.region,
             },
-        }), {
-            // pre: [
-            //     new pipelines.CodeBuildStep('UnitTests', {
-            //         projectName: `${environment.name}-${environment.project}-unit-tests`,
-            //         buildEnvironment: {
-            //             privileged: true
-            //         },
-            //         partialBuildSpec: aws_codebuild.BuildSpec.fromObject({
-            //             phases: {
-            //                 install: {
-            //                     'runtime-versions': {
-            //                         nodejs: 14,
-            //                         python: 3.9
-            //                     }
-            //                 }
-            //             }
-            //         }),
-            //         env: {
-            //             ENVIRONMENT: environment.name,
-            //         },
-            //         installCommands: [`bash "$CODEBUILD_SRC_DIR"/infrastructure/scripts/unit-tests/install.sh`],
-            //         commands: [`bash "$CODEBUILD_SRC_DIR"/infrastructure/scripts/unit-tests/build.sh`],
-            //     }),
-            // ]
-        });
+        }));
     }
 
 }

@@ -7,7 +7,6 @@ import logging
 
 
 ENV = os.environ.get("ENV", 'dev')
-# DEDUP_TABLE = os.environ["DEDUP_TABLE"]
 
 needed_fields = set(['stock_name', 'price', 'ts'])
 
@@ -16,15 +15,12 @@ logger = logging.getLogger()
 logger.setLevel(LOG_LEVEL)
 
 s3 = boto3.resource('s3')
-# dynamo = boto3.client('dynamodb')
 
 def process_data(records):
     output = []
     for record in records:
         try:
             payload = json.loads(base64.b64decode(record['data']).decode('utf-8'))
-            # print('payload:')
-            # print(payload)
 
             # Validate
             payload_fields = set(payload.keys())
@@ -48,8 +44,6 @@ def process_data(records):
             }
             output.append(output_record)
 
-    # print('Returning: ')
-    # print(output)
     print('Processed records: {}'.format(len(records)))
 
     return output

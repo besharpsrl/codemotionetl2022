@@ -46,18 +46,8 @@ export class KinesisInput extends Construct {
       streamMode: StreamMode.ON_DEMAND,
     });
 
-
-    // const dedupTable = new DynamoTable(this, `${COUNTRY_PREFIX}EventsTable`, {
-    //   tableName: `${props.prefix}-self-registration-events-table`,
-    //   billingMode: BillingMode.PAY_PER_REQUEST,
-    //   partitionKey: {name: 'submission_id', type: AttributeType.STRING},
-    //   sortKey: {name: 's3_key', type: AttributeType.STRING}, //obj_key
-    //   pointInTimeRecovery: true,
-    //   removalPolicy: RemovalPolicy.DESTROY
-    // });
-
     /* **********************
-        Log group, processIAM role
+        Log group
     ************************* */
     const deliveryStreamLogGroup = new LogGroup(this, `deliveryStreamLogGroup`, {
       logGroupName: `${environment.name}-${environment.project}-delivery-stream`
@@ -91,7 +81,7 @@ export class KinesisInput extends Construct {
     });
 
   /* **********************
-      Processor
+      Kinesis Processor
   ************************* */
   const validatorLambdaRole = new Role(this, `validatorLambdaRole`, {
     roleName: `${environment.name}-${environment.project}-validator-role`,
@@ -101,7 +91,6 @@ export class KinesisInput extends Construct {
         ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
     ],
   })
-  // dedupTable.grantReadWriteData(this.validatorLambdaRole) // for deduplication
 
   const validatorLambda = new Function(this, `validatorLambda`, {
       functionName: `${environment.name}-${environment.project}-validator`,
@@ -109,7 +98,6 @@ export class KinesisInput extends Construct {
       environment: {
           ENV: environment.name,
           LOG_LEVEL: environment.name == 'dev' ? "20" : "40",
-          // DEDUP_TABLE: dedupTable.tableName
       },
       handler: 'index.lambda_handler',
       runtime: Runtime.PYTHON_3_9,
@@ -117,7 +105,6 @@ export class KinesisInput extends Construct {
       code: new AssetCode(path.join(__dirname, '..', '..', '..', 'src', 'lambdas', 'validator')),
       memorySize: 256,
       timeout: Duration.minutes(3),
-      // onFailure: new lambdaSNSDestination(kinesisLambdaFailureTopic),
   })
 
   /* **********************
